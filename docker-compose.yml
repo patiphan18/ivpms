@@ -1,0 +1,43 @@
+version: '3'
+
+services:
+  nginx:
+    container_name: team0_nginx
+    image: nginx:stable-alpine
+    restart: unless-stopped
+    volumes:
+      - ./html/:/var/www/html
+      - ./nginx/conf/nginx.conf:/etc/nginx/conf/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+
+    ports:
+      - "9080:9080"
+
+  php:
+    container_name: team0_php
+    image: peerasakp/php7-4
+    restart: unless-stopped
+    volumes:
+      - ./html/:/var/www/html
+    expose:
+      - "9000"
+
+  db:
+    container_name: team0_mariadb
+    image: mariadb:10.3
+    restart: unless-stopped
+    command: mysqld --character-set-server=utf8 --collation-server=utf8_unicode_ci
+    volumes:
+      - ./mariadb/initdb/:/docker-entrypoint-initdb.d
+      - ./mariadb/data/:/var/lib/mysql/
+    env_file:
+      - ./mariadb/db.env
+  
+  phpmyadmin:
+    container_name: team0_phpmyadmin
+    image: phpmyadmin:5.0.4-apache
+    restart: unless-stopped
+    ports:
+      - 8090:80
+    environment:
+      - PMA_HOST=db
